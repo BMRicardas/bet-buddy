@@ -20,7 +20,6 @@ export async function loginPlayer(data: Login) {
     ENDPOINTS.AUTH.LOGIN,
     data
   );
-  localStorage.setItem("accessToken", response.data.accessToken);
   return response.data;
 }
 

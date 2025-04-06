@@ -1,26 +1,47 @@
 import { createContext, ReactNode, useContext, useState } from "react";
+import { Login, LoginResponse } from "../types/api.types";
+import { loginPlayer, logoutPlayer } from "../api";
 
 type AuthContextType = {
-  isAuthenticated: boolean;
-  login: () => void;
+  user?: LoginResponse;
+  loading: boolean;
+  login: (data: Login) => Promise<LoginResponse>;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<LoginResponse | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
 
-  const login = () => {
-    setIsAuthenticated(true);
-  };
+  async function login(data: Login) {
+    setLoading(true);
 
-  const logout = () => {
-    setIsAuthenticated(false);
-  };
+    try {
+      const response = await loginPlayer(data);
+
+      localStorage.setItem("accessToken", response.accessToken);
+      setUser(response);
+
+      return response;
+    } catch (error) {
+      console.error("Login failed:", error);
+
+      throw new Error();
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function logout() {
+    logoutPlayer();
+    setUser(undefined);
+  }
 
   const value = {
-    isAuthenticated,
+    user,
+    loading,
     login,
     logout,
   };

@@ -1,8 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { z } from "zod";
-import { loginPlayer } from "../api";
 import { useAuth } from "../contexts/auth.context";
 
 const loginSchema = z.object({
@@ -15,12 +14,13 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
+export function LoginPage() {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     defaultValues: {
       email: "",
@@ -29,16 +29,9 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onSubmit: SubmitHandler<LoginFormValues> = (data) => {
-    console.log("Form submitted:", data);
-    loginPlayer(data)
-      .then((response) => {
-        console.log("Login successful:", response);
-        login();
-      })
-      .catch((error) => {
-        console.error("Login failed:", error);
-      });
+  const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
+    await login(data);
+    navigate("/");
   };
 
   return (
@@ -48,10 +41,14 @@ export default function LoginPage() {
         <div>
           <label htmlFor="email">Email:</label>
           <input type="email" id="email" {...register("email")} />
+          {errors.email && <span role="alert">{errors.email.message}</span>}
         </div>
         <div>
           <label htmlFor="password">Password:</label>
           <input type="password" id="password" {...register("password")} />
+          {errors.password && (
+            <span role="alert">{errors.password.message}</span>
+          )}
         </div>
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Logging in..." : "Login"}
