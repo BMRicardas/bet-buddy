@@ -3,7 +3,7 @@ import {
   LoginResponse,
   RegisterPlayer,
   RegisterPlayerResponse,
-} from "../types/api";
+} from "../types/api.types";
 import { apiClient } from "./configure";
 import { ENDPOINTS } from "./endpoints";
 
@@ -20,5 +20,10 @@ export async function loginPlayer(data: Login) {
     ENDPOINTS.AUTH.LOGIN,
     data
   );
+  localStorage.setItem("accessToken", response.data.accessToken);
   return response.data;
+}
+
+export function logoutPlayer() {
+  localStorage.removeItem("accessToken");
 }
