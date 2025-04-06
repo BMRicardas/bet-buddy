@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Link } from "react-router";
 import { z } from "zod";
+import { loginPlayer } from "../api";
 
 const loginSchema = z.object({
   email: z
@@ -14,7 +15,11 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const { handleSubmit, register } = useForm<LoginFormValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<LoginFormValues>({
     defaultValues: {
       email: "",
       password: "",
@@ -24,6 +29,13 @@ export default function LoginPage() {
 
   const onSubmit: SubmitHandler<LoginFormValues> = (data) => {
     console.log("Form submitted:", data);
+    loginPlayer(data)
+      .then((response) => {
+        console.log("Login successful:", response);
+      })
+      .catch((error) => {
+        console.error("Login failed:", error);
+      });
   };
 
   return (
@@ -38,7 +50,9 @@ export default function LoginPage() {
           <label htmlFor="password">Password:</label>
           <input type="password" id="password" {...register("password")} />
         </div>
-        <button type="submit">Login</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Logging in..." : "Login"}
+        </button>
       </form>
       <div>
         Don't have an account? <Link to="/register">Register</Link>

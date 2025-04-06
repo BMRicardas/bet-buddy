@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { z } from "zod";
+import { registerPlayer } from "../api";
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -28,7 +29,12 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const { handleSubmit, register } = useForm<RegisterFormValues>({
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<RegisterFormValues>({
     defaultValues: {
       name: "",
       email: "",
@@ -38,8 +44,15 @@ export default function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit: SubmitHandler<RegisterFormValues> = (data) => {
+  const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
     console.log("Form submitted:", data);
+
+    try {
+      await registerPlayer(data);
+      navigate("/login");
+    } catch (error) {
+      console.error("Registration failed:", error);
+    }
   };
 
   return (
@@ -66,7 +79,9 @@ export default function RegisterPage() {
             {...register("confirmPassword")}
           />
         </div>
-        <button type="submit">Register</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Registering..." : "Register"}
+        </button>
       </form>
       <div>
         Already have an account? <Link to="/login">Login</Link>
