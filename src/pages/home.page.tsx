@@ -5,6 +5,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { formatCurrency } from "../utils/currency";
 import { placeBet } from "../api";
 import { useBalance } from "../contexts/balance.context";
+import { Link } from "react-router";
 
 const betFormSchema = z.object({
   ammount: z
@@ -64,7 +65,7 @@ export function HomePage() {
     <div>
       <h1>Welcome, {user?.name}</h1>
       <h2>Place your bet</h2>
-      <p>Your balance: {formatCurrency(balance, user?.currency)}</p>
+      <p>Your balance: {formatCurrency(balance)}</p>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
           <label htmlFor="ammount">Bet Amount:</label>
@@ -75,6 +76,7 @@ export function HomePage() {
           {isSubmitting ? "Placing bet..." : "Place Bet"}
         </button>
       </form>
+      <Link to="/bets">View Betting History</Link>
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { ProtectedRoute } from "./routes/protected.route";
 import { HomePage } from "./pages/home.page";
 import { PublicRoute } from "./routes/public.route";
 import { BalanceProvider } from "./contexts/balance.context";
+import { BetsPage } from "./pages/bets.page";
 
 export function App() {
   return (
@@ -22,7 +23,7 @@ export function App() {
             {/* Protected Routes */}
             <Route Component={ProtectedRoute}>
               <Route path="/" Component={HomePage} />
-              <Route path="/dashboard" Component={() => <h1>Dashboard</h1>} />
+              <Route path="/bets" Component={BetsPage} />
             </Route>
             {/* Not Found */}
             <Route path="*" Component={() => <h1>404 Not Found</h1>} />
