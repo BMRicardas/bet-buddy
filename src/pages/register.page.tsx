@@ -3,6 +3,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { z } from "zod";
 import { registerPlayer } from "../api";
+import { useAuth } from "../contexts/auth.context";
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -29,7 +30,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterPage() {
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -49,7 +50,7 @@ export function RegisterPage() {
 
     try {
       await registerPlayer(data);
-      navigate("/login");
+      await login(data);
     } catch (error) {
       console.error("Registration failed:", error);
     }

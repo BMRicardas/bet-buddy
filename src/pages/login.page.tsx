@@ -30,8 +30,12 @@ export function LoginPage() {
   });
 
   const onSubmit: SubmitHandler<LoginFormValues> = async (data) => {
-    await login(data);
-    navigate("/");
+    try {
+      await login(data);
+      navigate("/");
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   return (
