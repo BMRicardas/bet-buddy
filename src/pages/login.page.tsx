@@ -3,6 +3,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Link } from "react-router";
 import { z } from "zod";
 import { loginPlayer } from "../api";
+import { useAuth } from "../contexts/auth.context";
 
 const loginSchema = z.object({
   email: z
@@ -15,6 +16,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const {
     register,
     handleSubmit,
@@ -32,6 +34,7 @@ export default function LoginPage() {
     loginPlayer(data)
       .then((response) => {
         console.log("Login successful:", response);
+        login();
       })
       .catch((error) => {
         console.error("Login failed:", error);
