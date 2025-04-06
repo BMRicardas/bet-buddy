@@ -18,6 +18,12 @@ export function BalanceProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [balance, setBalance] = useState(user?.balance || 0);
 
+  useEffect(() => {
+    if (user) {
+      setBalance(user.balance);
+    }
+  }, [user]);
+
   const updateBalance = (newBalance: number) => {
     setBalance(() => newBalance);
   };
