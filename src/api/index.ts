@@ -1,4 +1,6 @@
 import {
+  Bet,
+  BetResponse,
   Login,
   LoginResponse,
   RegisterPlayer,
@@ -25,4 +27,12 @@ export async function loginPlayer(data: Login) {
 
 export function logoutPlayer() {
   localStorage.removeItem("accessToken");
+}
+
+export async function placeBet(data: Bet) {
+  const response = await apiClient.post<BetResponse>(
+    ENDPOINTS.BET.PLACE_BET,
+    data
+  );
+  return response.data;
 }
