@@ -1,6 +1,34 @@
 import useSWR from "swr";
 import { getMyBets } from "../api";
 import { formatCurrency } from "../utils/currency";
+import { type Column, Table } from "../components/table";
+import { formatDate } from "../utils/date";
+
+const TABLE_HEADERS: Column[] = [
+  {
+    accessor: "createdAt",
+    label: "Date/Time",
+    format: (value) => formatDate(value),
+  },
+  {
+    accessor: "amount",
+    label: "Amount",
+    format: (value) => formatCurrency(value),
+  },
+  {
+    accessor: "status",
+    label: "Status",
+  },
+  {
+    accessor: "winAmount",
+    label: "Prize",
+    format: (value) => (value ? formatCurrency(value) : "-"),
+  },
+  {
+    accessor: "actions",
+    label: "Actions",
+  },
+];
 
 export function BetsPage() {
   const key = ["/my-bets"];
@@ -19,34 +47,29 @@ export function BetsPage() {
       {error && <p>Error loading bets: {error.message}</p>}
       {data && data.data.length === 0 && <p>No bets found.</p>}
       {data && data.data.length > 0 && (
-        <table>
-          <thead>
-            <tr>
-              <th>Date/Time</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Prize</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.data.map((bet) => (
-              <tr key={bet.id}>
-                <td>{new Date(bet.createdAt).toLocaleDateString()}</td>
-                <td>{bet.amount}</td>
-                <td>{bet.status}</td>
-                <td>{bet.winAmount ? formatCurrency(bet.winAmount) : "-"}</td>
-                <td>
-                  {bet.status === "cancelled" ? (
-                    <button disabled>Cancelled</button>
-                  ) : (
-                    <button onClick={() => console.log(bet.id)}>Cancel</button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <Table
+          columns={TABLE_HEADERS.map((header) => {
+            return {
+              ...header,
+              format: header.format ? header.format : (value: string) => value,
+            };
+          })}
+          rows={data.data.map((bet) => ({
+            id: bet.id,
+            content: {
+              createdAt: bet.createdAt,
+              amount: bet.amount,
+              status: bet.status,
+              winAmount: bet.winAmount,
+              actions:
+                bet.status === "cancelled" ? (
+                  <button disabled>Cancelled</button>
+                ) : (
+                  <button onClick={() => console.log(bet.id)}>Cancel</button>
+                ),
+            },
+          }))}
+        />
       )}
     </div>
   );
