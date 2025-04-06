@@ -1,8 +1,9 @@
 import useSWR from "swr";
-import { getMyBets } from "../api";
+import { cancelBet, getMyBets } from "../api";
 import { formatCurrency } from "../utils/currency";
 import { type Column, Table } from "../components/table";
 import { formatDate } from "../utils/date";
+import { capitalizeFirstLetter } from "../utils/text";
 
 const TABLE_HEADERS: Column[] = [
   {
@@ -18,6 +19,7 @@ const TABLE_HEADERS: Column[] = [
   {
     accessor: "status",
     label: "Status",
+    format: (value) => capitalizeFirstLetter(value),
   },
   {
     accessor: "winAmount",
@@ -31,13 +33,21 @@ const TABLE_HEADERS: Column[] = [
 ];
 
 export function BetsPage() {
-  const key = ["/my-bets"];
+  const key = "/my-bets";
 
-  const { data, error, isLoading } = useSWR(key, () =>
+  const { data, error, isLoading, mutate } = useSWR(key, () =>
     getMyBets({ page: 1, limit: 10 })
   );
 
-  console.log({ data });
+  async function handleCancelBet(id: string) {
+    console.log({ id });
+    try {
+      await cancelBet(id);
+      mutate();
+    } catch (error) {
+      console.error("Error cancelling bet:", error);
+    }
+  }
 
   return (
     <div>
@@ -65,7 +75,9 @@ export function BetsPage() {
                 bet.status === "cancelled" ? (
                   <button disabled>Cancelled</button>
                 ) : (
-                  <button onClick={() => console.log(bet.id)}>Cancel</button>
+                  <button onClick={() => handleCancelBet(bet.id)}>
+                    Cancel
+                  </button>
                 ),
             },
           }))}

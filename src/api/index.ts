@@ -2,6 +2,7 @@ import {
   Bet,
   BetResponse,
   BetsQueryParams,
+  CancelBetResponse,
   Login,
   LoginResponse,
   MyBetsResponse,
@@ -46,6 +47,13 @@ export async function getMyBets({ page, limit, status, id }: BetsQueryParams) {
   const response = await apiClient.get<PaginateResponse<MyBetsResponse>>(
     ENDPOINTS.BET.MY_BETS,
     { params: { page, limit, status, id } }
+  );
+  return response.data;
+}
+
+export async function cancelBet(id: string) {
+  const response = await apiClient.delete<CancelBetResponse>(
+    ENDPOINTS.BET.CANCEL_BET(id)
   );
   return response.data;
 }
