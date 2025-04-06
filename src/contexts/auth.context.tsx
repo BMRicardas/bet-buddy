@@ -1,4 +1,10 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { Login, LoginResponse } from "../types/api.types";
 import { loginPlayer, logoutPlayer } from "../api";
 
@@ -15,6 +21,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<LoginResponse | undefined>(undefined);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    function loadUser() {
+      setLoading(true);
+      try {
+        const accessToken = localStorage.getItem("accessToken");
+        const user = localStorage.getItem("user");
+
+        if (accessToken && user) {
+          setUser(JSON.parse(user));
+        }
+      } catch (error) {
+        console.error("Error loading user from localStorage:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadUser();
+  }, []);
+
   async function login(data: Login) {
     setLoading(true);
 
@@ -22,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await loginPlayer(data);
 
       localStorage.setItem("accessToken", response.accessToken);
+      localStorage.setItem("user", JSON.stringify(response));
       setUser(response);
 
       return response;
