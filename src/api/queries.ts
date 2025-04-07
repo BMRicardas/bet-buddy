@@ -11,19 +11,9 @@ import {
   RegisterPlayer,
   RegisterPlayerResponse,
   TransactionsQueryParams,
-} from "../types/api.types";
+} from "@/types/api.types";
 import { apiClient } from "./configure";
 import { ENDPOINTS } from "./endpoints";
-
-// export const authApi = {
-//   register: async (data: RegisterPlayer) => {
-//     const response = await apiClient.post<RegisterPlayerResponse>(
-//       ENDPOINTS.AUTH.REGISTER,
-//       data
-//     );
-//     return response.data;
-//   },
-// };
 
 export function getUser(): LoginResponse | null {
   const response = localStorage.getItem("user");

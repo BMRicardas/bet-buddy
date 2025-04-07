@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency } from "@/utils/currency";
 import { Link } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { placeBet } from "../api/queries";
-import { useUserContext } from "../contexts/user/use-user-context";
+import { placeBet } from "@/api/queries";
+import { useUserContext } from "@/contexts/user/use-user-context";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Form, FormItem, FormLabel, FormMessage } from "@/components/ui/form";

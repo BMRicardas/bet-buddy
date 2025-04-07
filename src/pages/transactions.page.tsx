@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMyTransactions } from "../api/queries";
-import { Table } from "../components/table";
+import { getMyTransactions } from "@/api/queries";
+import { Table } from "@/components/table";
 import { Pagination } from "@/components/pagination";
 import { useState } from "react";
 import { capitalizeFirstLetter } from "@/utils/text";

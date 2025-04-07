@@ -3,7 +3,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { loginPlayer } from "../api/queries";
+import { loginPlayer } from "@/api/queries";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {

@@ -1,9 +1,9 @@
-import { Table } from "../components/table";
+import { Table } from "@/components/table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { cancelBet, getMyBets } from "../api/queries";
-import { formatDate } from "../utils/date";
-import { formatCurrency } from "../utils/currency";
-import { capitalizeFirstLetter } from "../utils/text";
+import { cancelBet, getMyBets } from "@/api/queries";
+import { formatDate } from "@/utils/date";
+import { formatCurrency } from "@/utils/currency";
+import { capitalizeFirstLetter } from "@/utils/text";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/pagination";
 import { useState } from "react";

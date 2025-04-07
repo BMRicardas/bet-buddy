@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { LoginResponse } from "../../types/api.types";
+import { LoginResponse } from "@/types/api.types";
 
 type UserContextType = {
   user?: LoginResponse | null;

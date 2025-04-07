@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { UserContext } from "./user.context";
-import { getUser } from "../../api/queries";
+import { getUser } from "@/api/queries";
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const {

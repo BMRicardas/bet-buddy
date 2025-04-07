@@ -1,8 +1,8 @@
 import { Link, Outlet, useNavigate } from "react-router";
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency } from "@/utils/currency";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { logoutPlayer } from "../api/queries";
-import { useUserContext } from "../contexts/user/use-user-context";
+import { logoutPlayer } from "@/api/queries";
+import { useUserContext } from "@/contexts/user/use-user-context";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
