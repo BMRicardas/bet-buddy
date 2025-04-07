@@ -1,12 +1,12 @@
 import { Navigate, Outlet } from "react-router";
-import { useAuth } from "../contexts/auth.context";
+import { useUserContext } from "../contexts/user/use-user-context";
 
 type Props = {
   redirectTo?: string;
 };
 
 export function ProtectedRoute({ redirectTo = "/login" }: Props) {
-  const { user } = useAuth();
+  const { user } = useUserContext();
 
   return user ? <Outlet /> : <Navigate to={redirectTo} replace />;
 }

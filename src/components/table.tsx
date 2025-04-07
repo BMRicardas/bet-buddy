@@ -1,52 +1,65 @@
 import { ReactNode } from "react";
+import {
+  Table as SCNTable,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table";
 
-export type Column<Accessor extends string = string> = {
-  accessor: Accessor;
-  label: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  format?: (value: any) => ReactNode;
-};
-
-type Row<Accessor extends string = string> = {
-  id: string;
-  content: Record<Accessor, ReactNode>;
-};
+type Align = "left" | "right" | "center";
 
 type Props<Accessor extends string = string> = {
-  columns: Column<Accessor>[];
-  rows: Row<Accessor>[];
+  columns: {
+    accessor: Accessor;
+    label: string;
+    align?: Align;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    format?: (value: any) => ReactNode;
+  }[];
+  rows: {
+    id: string;
+    content: Record<Accessor, ReactNode>;
+  }[];
 };
 
 export function Table({ columns, rows }: Props) {
   return (
-    <table>
-      <thead>
-        <tr>
+    <SCNTable>
+      <TableHeader>
+        <TableRow>
           {columns.map((column) => {
-            return <th key={column.accessor}>{column.label}</th>;
+            return (
+              <TableHead key={column.accessor} align={column.align}>
+                {column.label}
+              </TableHead>
+            );
           })}
-        </tr>
-      </thead>
-      <tbody>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {rows.map((row) => {
           return (
-            <tr key={row.id}>
+            <TableRow key={row.id}>
               {columns.map((column) => {
                 if (column.format) {
                   return (
-                    <td key={column.accessor}>
+                    <TableCell key={column.accessor}>
                       {column.format(row.content[column.accessor])}
-                    </td>
+                    </TableCell>
                   );
                 }
                 return (
-                  <td key={column.accessor}>{row.content[column.accessor]}</td>
+                  <TableCell key={column.accessor}>
+                    {row.content[column.accessor]}
+                  </TableCell>
                 );
               })}
-            </tr>
+            </TableRow>
           );
         })}
-      </tbody>
-    </table>
+      </TableBody>
+    </SCNTable>
   );
 }

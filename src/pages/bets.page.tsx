@@ -1,52 +1,36 @@
-import useSWR from "swr";
-import { cancelBet, getMyBets } from "../api";
-import { formatCurrency } from "../utils/currency";
-import { type Column, Table } from "../components/table";
+import { Table } from "../components/table";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { cancelBet, getMyBets } from "../api/queries";
 import { formatDate } from "../utils/date";
+import { formatCurrency } from "../utils/currency";
 import { capitalizeFirstLetter } from "../utils/text";
-
-const TABLE_HEADERS: Column[] = [
-  {
-    accessor: "createdAt",
-    label: "Date/Time",
-    format: (value) => formatDate(value),
-  },
-  {
-    accessor: "amount",
-    label: "Amount",
-    format: (value) => formatCurrency(value),
-  },
-  {
-    accessor: "status",
-    label: "Status",
-    format: (value) => capitalizeFirstLetter(value),
-  },
-  {
-    accessor: "winAmount",
-    label: "Prize",
-    format: (value) => (value ? formatCurrency(value) : "-"),
-  },
-  {
-    accessor: "actions",
-    label: "Actions",
-  },
-];
+import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/pagination";
+import { useState } from "react";
 
 export function BetsPage() {
-  const key = "/my-bets";
-
-  const { data, error, isLoading, mutate } = useSWR(key, () =>
-    getMyBets({ page: 1, limit: 10 })
-  );
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: cancelBet,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bets"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+  });
+  const {
+    data: bets,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["bets", currentPage, pageSize],
+    queryFn: () => getMyBets({ page: currentPage, limit: pageSize }),
+  });
 
   async function handleCancelBet(id: string) {
-    console.log({ id });
-    try {
-      await cancelBet(id);
-      mutate();
-    } catch (error) {
-      console.error("Error cancelling bet:", error);
-    }
+    mutate(id);
   }
 
   return (
@@ -54,34 +38,67 @@ export function BetsPage() {
       <h1>My Betting History</h1>
       <p>Here you can view your betting history.</p>
       {isLoading && <p>Loading...</p>}
-      {error && <p>Error loading bets: {error.message}</p>}
-      {data && data.data.length === 0 && <p>No bets found.</p>}
-      {data && data.data.length > 0 && (
-        <Table
-          columns={TABLE_HEADERS.map((header) => {
-            return {
-              ...header,
-              format: header.format ? header.format : (value: string) => value,
-            };
-          })}
-          rows={data.data.map((bet) => ({
-            id: bet.id,
-            content: {
-              createdAt: bet.createdAt,
-              amount: bet.amount,
-              status: bet.status,
-              winAmount: bet.winAmount,
-              actions:
-                bet.status === "cancelled" ? (
-                  <button disabled>Cancelled</button>
-                ) : (
-                  <button onClick={() => handleCancelBet(bet.id)}>
-                    Cancel
-                  </button>
-                ),
-            },
-          }))}
-        />
+      {isError && <p>Error loading bets: {error.message}</p>}
+      {bets && bets.data.length === 0 && <p>No bets found.</p>}
+      {bets && bets.data.length > 0 && (
+        <>
+          <Table
+            columns={[
+              {
+                accessor: "createdAt",
+                label: "Date/Time",
+                format: (value) => formatDate(value),
+              },
+              {
+                accessor: "amount",
+                label: "Amount",
+                format: (value) => formatCurrency(value),
+              },
+              {
+                accessor: "status",
+                label: "Status",
+                format: (value) => capitalizeFirstLetter(value),
+              },
+              {
+                accessor: "winAmount",
+                label: "Win Amount",
+                format: (value) => (value ? formatCurrency(value) : "-"),
+              },
+              {
+                accessor: "actions",
+                label: "",
+              },
+            ]}
+            rows={bets.data.map((bet) => {
+              return {
+                id: bet.id,
+                content: {
+                  createdAt: bet.createdAt,
+                  amount: bet.amount,
+                  status: bet.status,
+                  winAmount: bet.winAmount,
+                  actions:
+                    bet.status === "canceled" ? (
+                      <Button disabled>Cancelled</Button>
+                    ) : (
+                      <Button onClick={() => handleCancelBet(bet.id)}>
+                        Cancel
+                      </Button>
+                    ),
+                },
+              };
+            })}
+          />
+          <Pagination
+            activePage={currentPage}
+            count={bets.total}
+            rowsPerPage={pageSize}
+            setActivePage={(page) => {
+              setCurrentPage(page);
+              queryClient.invalidateQueries({ queryKey: ["bets"] });
+            }}
+          />
+        </>
       )}
     </div>
   );

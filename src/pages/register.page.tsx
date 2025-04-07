@@ -1,9 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { z } from "zod";
-import { registerPlayer } from "../api";
-import { useAuth } from "../contexts/auth.context";
+import { useMutation } from "@tanstack/react-query";
+import { registerPlayer } from "../api/queries";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Form, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const MIN_PASSWORD_LENGTH = 6;
 
@@ -30,12 +39,15 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterPage() {
-  const { login } = useAuth();
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<RegisterFormValues>({
+  const navigate = useNavigate();
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: registerPlayer,
+    onSuccess: () => {
+      navigate("/login");
+    },
+  });
+
+  const form = useForm({
     defaultValues: {
       name: "",
       email: "",
@@ -45,48 +57,71 @@ export function RegisterPage() {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
-    console.log("Form submitted:", data);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = form;
 
-    try {
-      await registerPlayer(data);
-      await login(data);
-    } catch (error) {
-      console.error("Registration failed:", error);
-    }
+  const onSubmit: SubmitHandler<RegisterFormValues> = async (data) => {
+    mutate(data);
   };
 
+  const isLoading = isPending || isSubmitting;
+
   return (
-    <div>
-      <h1>RegisterPage</h1>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="name">Name:</label>
-          <input type="text" id="name" {...register("name")} />
-        </div>
-        <div>
-          <label htmlFor="email">Email:</label>
-          <input type="email" id="email" {...register("email")} />
-        </div>
-        <div>
-          <label htmlFor="password">Password:</label>
-          <input type="password" id="password" {...register("password")} />
-        </div>
-        <div>
-          <label htmlFor="confirmPassword">Confirm Password:</label>
-          <input
-            type="password"
-            id="confirmPassword"
-            {...register("confirmPassword")}
-          />
-        </div>
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Registering..." : "Register"}
-        </button>
-      </form>
+    <Card className="w-[350px]">
+      <CardHeader>
+        <CardTitle>Register</CardTitle>
+        <CardDescription>
+          Create a new account to start betting.
+        </CardDescription>
+      </CardHeader>
+      <Form {...form}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <FormItem>
+            <FormLabel htmlFor="name">Name:</FormLabel>
+            <Input type="text" id="name" {...register("name")} />
+            {errors.name && (
+              <FormMessage role="alert">{errors.name.message}</FormMessage>
+            )}
+          </FormItem>
+          <FormItem>
+            <FormLabel htmlFor="email">Email:</FormLabel>
+            <Input type="email" id="email" {...register("email")} />
+            {errors.email && (
+              <FormMessage role="alert">{errors.email.message}</FormMessage>
+            )}
+          </FormItem>
+          <FormItem>
+            <FormLabel htmlFor="password">Password:</FormLabel>
+            <Input type="password" id="password" {...register("password")} />
+            {errors.password && (
+              <FormMessage role="alert">{errors.password.message}</FormMessage>
+            )}
+          </FormItem>
+          <FormItem>
+            <FormLabel htmlFor="confirmPassword">Confirm Password:</FormLabel>
+            <Input
+              type="password"
+              id="confirmPassword"
+              {...register("confirmPassword")}
+            />
+            {errors.confirmPassword && (
+              <FormMessage role="alert">
+                {errors.confirmPassword.message}
+              </FormMessage>
+            )}
+          </FormItem>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Registering..." : "Register"}
+          </Button>
+        </form>
+      </Form>
+      {isError && <FormMessage role="alert">{error.message}</FormMessage>}
       <div>
         Already have an account? <Link to="/login">Login</Link>
       </div>
-    </div>
+    </Card>
   );
 }

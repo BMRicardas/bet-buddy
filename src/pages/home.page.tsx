@@ -1,11 +1,14 @@
 import { z } from "zod";
-import { useAuth } from "../contexts/auth.context";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { formatCurrency } from "../utils/currency";
-import { placeBet } from "../api";
-import { useBalance } from "../contexts/balance.context";
 import { Link } from "react-router";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { placeBet } from "../api/queries";
+import { useUserContext } from "../contexts/user/use-user-context";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Form, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 const betFormSchema = z.object({
   ammount: z
@@ -25,36 +28,42 @@ const betFormSchema = z.object({
 type BetFormValues = z.infer<typeof betFormSchema>;
 
 export function HomePage() {
-  const { user } = useAuth();
-  const { balance, updateBalance } = useBalance();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<BetFormValues>({
+  const { user } = useUserContext();
+  const queryClient = useQueryClient();
+  const { mutate } = useMutation({
+    mutationFn: placeBet,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bets"] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+  });
+  const form = useForm<BetFormValues>({
     defaultValues: {
       ammount: "",
     },
     resolver: zodResolver(
-      betFormSchema.refine((data) => {
-        const amount = Number(data.ammount);
-        return !user || amount <= balance;
-      })
+      betFormSchema.refine(
+        (data) => {
+          const amount = Number(data.ammount);
+          return !user || amount <= user.balance;
+        },
+        {
+          message: "Bet amount cannot exceed your balance",
+          path: ["amount"],
+        }
+      )
     ),
   });
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = form;
+
   const onSubmit: SubmitHandler<BetFormValues> = async (data) => {
-    console.log("Form submitted:", data);
     const amount = Number(data.ammount);
-    try {
-      const result = await placeBet({ amount });
-
-      console.log({ betResult: result });
-
-      updateBalance(result.balance);
-    } catch (error) {
-      console.error("Error placing bet:", error);
-    }
+    mutate({ amount });
   };
 
   if (!user) {
@@ -65,17 +74,21 @@ export function HomePage() {
     <div>
       <h1>Welcome, {user?.name}</h1>
       <h2>Place your bet</h2>
-      <p>Your balance: {formatCurrency(balance)}</p>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="ammount">Bet Amount:</label>
-          <input type="number" id="ammount" {...register("ammount")} />
-          {errors.ammount && <span role="alert">{errors.ammount.message}</span>}
-        </div>
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Placing bet..." : "Place Bet"}
-        </button>
-      </form>
+      <p>Your balance: {formatCurrency(user.balance)}</p>
+      <Form {...form}>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <FormItem>
+            <FormLabel htmlFor="ammount">Bet Amount:</FormLabel>
+            <Input type="number" id="ammount" {...register("ammount")} />
+            {errors.ammount && (
+              <FormMessage role="alert">{errors.ammount.message}</FormMessage>
+            )}
+          </FormItem>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Placing bet..." : "Place Bet"}
+          </Button>
+        </form>
+      </Form>
       <Link to="/bets">View Betting History</Link>
     </div>
   );
